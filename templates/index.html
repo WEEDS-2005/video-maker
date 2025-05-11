@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Video Downloader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 100px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        input, select, button {
+            padding: 10px;
+            margin: 10px;
+            width: 300px;
+        }
+        #message {
+            color: red;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Video Downloader</h1>
+    <input type="text" id="url" placeholder="Enter YouTube URL"><br>
+    <select id="media">
+        <option value="video">Video</option>
+        <option value="audio">Audio (MP3)</option>
+    </select><br>
+    <button onclick="download()">Download</button>
+    <div id="message"></div>
+
+    <script>
+        async function download() {
+            const url = document.getElementById("url").value;
+            const media = document.getElementById("media").value;
+            const messageBox = document.getElementById("message");
+
+            messageBox.textContent = "Processing...";
+
+            try {
+                const response = await fetch("/download", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ url, media })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    messageBox.textContent = data.error || "Something went wrong!";
+                    return;
+                }
+
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = downloadUrl;
+                a.download = "download";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                messageBox.textContent = "";
+            } catch (error) {
+                messageBox.textContent = "Error: " + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
